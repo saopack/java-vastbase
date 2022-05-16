@@ -1,0 +1,13 @@
+domain: vastdata.com
+layout:
+- quarkus.javaoperatorsdk.io/v1-alpha
+projectName: java-vastbase
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: vastdata.com
+  group: vastbase
+  kind: VastbaseSingle
+  version: v1alpha1
+version: "3"

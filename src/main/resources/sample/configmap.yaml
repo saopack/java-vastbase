@@ -1,0 +1,8 @@
+# 无需执行这个声明文件，本文件仅仅为了说明operator会自动生成的资源定义，仅做效果图
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mycnf
+data:
+  docker_image: vastbase:2.2.5mod

@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vastbase
+spec:
+  selector:
+    matchLabels:
+      app: vastbase
+  template:
+    metadata:
+      labels:
+        app: vastbase
+    spec:
+      containers:
+        - name: vastbase
+          image: vastbase:2.2.5mod
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: ROOT_PASSWORD
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name:  vastbase-persistent-storage
+              mountPath:  /data/vastdata
+            - name: vastbasecnf
+              mountPath: /data/vastdata/postgresql.conf
+              subPath: data/vastdata/postgresql.conf
+      volumes:
+        - name: vastbase-persistent-storage
+          persistentVolumeClaim:
+            claimName: vastbase-pv-claim
+        - name: vastbasecnf
+          configMap:
+            name: mycnf
+            items:
+              - key: postgresql.conf
+                path: data/vastdata/postgresql.conf
