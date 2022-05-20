@@ -1,0 +1,38 @@
+---
+apiVersion: vastbase.vastdata.com/v1alpha1
+kind: VastbaseCluster
+metadata:
+  name: vb-replica
+spec:
+  replicas: 2
+  secretName: vb-secret
+  image: saopack/vastbase_cluster:2.2.5
+  containerName: vastbase
+  containerPort: 5432
+  volumeMounts:
+    - name: vastbase-persistent-storage
+      mountPath: /home/vastbase/vbdata
+    - name: vastbasecnf
+      mountPath: /home/vastbase/vbbase/has/has_conf.yml
+      subPath: home/vastbase/vbbase/has/has_conf.yml
+  pvcStorageSize: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: /home/vastbase/vbdata
+  pvName: vastbase-pv-volume
+  pvcName: vastbase-pv-claim
+  headlessServiceName: vastbase
+  vastbasePersistentStorageMountName: vastbase-persistent-storage
+  vastbaseCnfMountName: vastbasecnf
+  vastbasePersistentStorageMountPath: /home/vastbase/vbdata
+  vastbaseCnfMountPath: /home/vastbase/vbbase/has/has_conf.yml
+  vastbaseCnfMountSubPath: home/vastbase/vbbase/has/has_conf.yml
+  volumeConfigName: vastbasecnf
+  statefulSetName: vastbase
+  vastbaseReadServiceName: vastbase-read
+  vastbaseWriteServiceName: vastbase-readwrite
+  vastbaseServiceReadNodePort: 30088
+  vastbaseServiceWriteNodePort: 30090
+

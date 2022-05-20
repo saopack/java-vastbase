@@ -28,7 +28,7 @@ spec:
           ports:
             - containerPort: 5432
           volumeMounts:
-            - name:  vastbase-persistent-storage
+            - name: vastbase-persistent-storage
               mountPath:  /data/vastdata
             - name: vastbasecnf
               mountPath: /data/vastdata/postgresql.conf

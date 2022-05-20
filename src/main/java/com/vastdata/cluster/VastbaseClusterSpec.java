@@ -27,6 +27,8 @@ public class VastbaseClusterSpec {
 
     private String containerName;
 
+    private String initContainerName;
+
     /**
      * 容器的资源限制，一般限制memory和cpu
      * <p>下面是一个示例</p>
@@ -140,5 +142,11 @@ public class VastbaseClusterSpec {
 
     private String vastbaseServiceName;
 
-    private Integer vastbaseServiceNodePort;
+    private String vastbaseReadServiceName;
+
+    private String vastbaseWriteServiceName;
+
+    private Integer vastbaseServiceReadNodePort;
+
+    private Integer vastbaseServiceWriteNodePort;
 }

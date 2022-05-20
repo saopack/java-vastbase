@@ -1,0 +1,96 @@
+apiVersion: v1
+data:
+  has_conf.yml: |
+    scope: vastbase
+    name: "vastbase_0"
+
+    restapi:
+      listen: 192.168.21.156:8008
+      connect_address: 192.168.21.156:8008
+
+    etcd:
+      hosts: 127.0.0.1
+
+    bootstrap:
+      dcs:
+        ttl: 30
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+        postgresql:
+          use_pg_rewind: true
+          use_slots: true
+          parameters:
+             max_connections: 500
+             shared_buffers: 256MB
+             work_mem: 4MB
+             log_destination: 'stderr'
+             logging_collector: 'on'
+             log_directory: '/home/vastbase/vbdata/logs'
+             log_filename: 'postgresql-%Y-%m-%d.log'
+             log_file_mode: 0600
+             log_rotation_size: '20MB'
+             log_min_duration_statement: 1800000
+             log_connections: 'off'
+             log_disconnections: 'off'
+             log_duration: 'on'
+             log_hostname: 'on'
+             log_line_prefix: '%m %c %d %p %a %x %n %e '
+             log_timezone: 'PRC'
+             replication_type: 1
+             recovery_max_workers: 4
+             password_encryption_type: 0
+             wal_level: 'hot_standby'
+             hot_standby: 'on'
+             most_available_sync: 'on'
+             vastbase_login_info: 'false'
+             pgxc_node_name: 'vdb'
+             remote_read_mode: 'non_authentication'
+             archive_mode: 'on'
+             license_path: '/home/vastbase/vbbase/lic/.license'
+
+      initdb:
+      - encoding: UTF8
+
+      pg_hba:
+      - host all vastbase 192.168.21.156/32 trust
+      - host all all 0.0.0.0/0 md5
+
+      users:
+        master:
+          password: "aA@12345"
+          options:
+            - createrole
+            - createdb
+        repl:
+          password: "aA@12345"
+          options:
+            - replication
+
+    postgresql:
+      callbacks:
+        on_start: /home/vastbase/vbbase/has/patroni_callback.sh
+        on_stop: /home/vastbase/vbbase/has/patroni_callback.sh
+        on_role_change: /home/vastbase/vbbase/has/patroni_callback.sh
+      listen: 0.0.0.0:5432
+      connect_address: 192.168.21.156:5432
+      use_unix_socket: true
+      data_dir: /home/vastbase/vbdata
+      config_dir: /home/vastbase/vbdata
+      bin_dir: /home/vastbase/vbbase/bin
+      vastbase_lib_dir: /home/vastbase/vbbase/lib
+      vastbase_home: /home/vastbase/vbbase
+      authentication:
+        replication:
+          username: vbadmin
+          password: "Vbase@admin"
+        superuser:
+          username: vbadmin
+          password: "Vbase@admin"
+      parameters:
+        unix_socket_directory: '/tmp'
+        archive_command: 'cp %p /home/vastbase/vbdata/arch/%f'
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: has-config

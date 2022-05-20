@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vastbase
+spec:
+  selector:
+    matchLabels:
+      app: vastbase
+  serviceName: vastbase
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: vastbase
+    spec:
+      containers:
+        - name: vastbase
+          image: saopack/vastbase_cluster:2.2.5
+          imagePullPolicy: Always
+          env:
+            - name: REPLICAS
+              value: "2"
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PORT
+              value: "5432"
+            - name: VASTBASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vb-secret
+                  key: vastbase_password
+            - name: VBADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vb-secret
+                  key: vbadmin_password
+            - name: db_config
+              value:
+            - name: SCOPE_NAME
+              value: "vastbase"
+            - name: SERVICE_NAME
+              value: "vastbase" 
