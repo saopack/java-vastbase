@@ -1,0 +1,21 @@
+FROM centos:7
+
+MAINTAINER yangjie <yangjie>
+
+ENV USER="vastbase" \
+    PASSWORD=1qaz@WSX \
+    GROUP=vastbase \
+    LC_ALL=en_US.utf8
+	
+RUN useradd ${USER} \
+       && yum -y update && yum install -y iptables sudo net-tools iproute  openssh-server openssh-clients which vim sudo crontabs libaio-0.3.109-13.el7.x86_64 zlib libuuid readline systemd-libs openssl krb5-libs libicu libxslt libxml2 tcl perl openldap pam openssl-devel cracklib gettext
+
+#安装database
+COPY vbbase/ /home/${USER}/vbbase
+COPY vbdata/ /home/${USER}/vbdata
+COPY scripts/ /home/${USER}/scripts
+COPY etcd/ /home/${USER}/etcd
+COPY .bashrc /home/${USER}/.bashrc
+
+#启动入口程序
+CMD ["/bin/bash", "/home/vastbase/scripts/entrypoint.sh"]

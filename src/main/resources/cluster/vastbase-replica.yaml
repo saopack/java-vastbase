@@ -35,4 +35,5 @@ spec:
   vastbaseWriteServiceName: vastbase-readwrite
   vastbaseServiceReadNodePort: 30088
   vastbaseServiceWriteNodePort: 30090
+  namespace: default
 

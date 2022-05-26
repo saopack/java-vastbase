@@ -53,4 +53,5 @@ spec:
       name: vsql
       nodePort: 30090
   selector:
-    statefulset.kubernetes.io/pod-name: vastbase-0
+    app: vastbase
+    role: master

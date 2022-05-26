@@ -3,6 +3,7 @@ package com.vastdata.cluster;
 import com.vastdata.constants.AccessModeEnum;
 import com.vastdata.constants.ApiVersionEnum;
 import com.vastdata.constants.ResourceKindEnum;
+import com.vastdata.vo.CompareStatefulsetResult;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
@@ -19,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@CSVMetadata(permissionRules = @CSVMetadata.PermissionRule(apiGroups = "",resources = "persistentvolumes"))
+@CSVMetadata(permissionRules = @CSVMetadata.PermissionRule(apiGroups = "apps",resources = "persistentvolumes"))
 public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     private final KubernetesClient client;
     private static final Logger log = LoggerFactory.getLogger(VastbaseClusterReconciler.class);
@@ -72,7 +73,10 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
         }
         if (statefulSetExisting == null) {
             log.info("statefulset named of {} was created!", statefulSet.getMetadata().getName());
-            statefulSetResource.createOrReplace(statefulSet);
+            statefulSetResource.createOrReplace(statefulSet);           
+        } else {
+            //对比修改statefulset
+            CompareStatefulsetResult compareStatefulsetResult = compareStatefulSetWith(statefulSetExisting,statefulSet);
         }
         if (headlessServiceExisting == null) {
             log.info("headless Service named of {} was created!", headlessService.getMetadata().getName());
@@ -88,6 +92,19 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
         }
 
         return UpdateControl.noUpdate();
+    }
+
+    private CompareStatefulsetResult compareStatefulSetWith(StatefulSet statefulSetExisting, StatefulSet statefulSet) {
+        CompareStatefulsetResult compareStatefulsetResult = new CompareStatefulsetResult();
+        boolean match = true;
+        StringBuffer reasons = new StringBuffer();
+        if(statefulSetExisting.getSpec().getReplicas().equals(statefulSet.getSpec().getReplicas())){
+            match = false;
+            reasons.append("new statefulset's number of replicas does not match the current one");
+        }
+        compareStatefulsetResult.setMatch(match);
+        compareStatefulsetResult.setReasons(reasons.toString());
+        return compareStatefulsetResult;
     }
 
     private Service buildReadService(VastbaseCluster vastbaseReplica) {
@@ -124,7 +141,8 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
         var vastbaseClusterSpec = vastbaseReplica.getSpec();
         var labels = new HashMap<String, String>();
         //序号0的副本作为主库提供读写能力
-        labels.put("statefulset.kubernetes.io/pod-name", vastbaseClusterSpec.getContainerName()+"-0");
+        labels.put("app", vastbaseClusterSpec.getContainerName());
+        labels.put("role", "master");
         ObjectMeta objectMeta = new ObjectMeta();
         objectMeta.setName(vastbaseClusterSpec.getVastbaseWriteServiceName());
         objectMeta.setLabels(labels);
@@ -242,6 +260,7 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
         envs.add(new EnvVar("REPLICAS",vbSpec.getReplicas().toString(),null));
         envs.add(new EnvVar("PORT",vbSpec.getContainerPort().toString(),null));
         envs.add(new EnvVar("SCOPE_NAME",vbSpec.getStatefulSetName(),null));
+        envs.add(new EnvVar("NAMESPACE",vbSpec.getNamespace(),null));
         envs.add(new EnvVar("SERVICE_NAME",vbSpec.getHeadlessServiceName(),null));
 
         var envVarSourceIP = new EnvVarSource();
