@@ -42,4 +42,24 @@ spec:
             - name: SCOPE_NAME
               value: "vastbase"
             - name: SERVICE_NAME
-              value: "vastbase" 
+              value: "vastbase"
+          volumeMounts:
+            - name: data
+              mountPath: /home/vastbase/vbdata
+            - name: conf
+              mountPath: /home/vastbase/vbbase/has/conf
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+    - metadata:
+        name: conf
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 100Mi 

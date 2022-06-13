@@ -120,6 +120,9 @@ sed -i "s#{db_log_dir}#$log_path#g" $patroni_conf_file
 sed -i "s#{db_lic_path}#$lic_path#g" $patroni_conf_file
 sed -i "s#{adminPass}#$adminPass#g" $patroni_conf_file
 
+#patroni_callback.sh
+sed -i "s#{namespace}#$NAMESPACE#g" $patroni_callback_sh
+
 for i in $(seq 0 $((${replicas}-1)))
 do
   if [ "${curr_node_name##*-}" != "${i}" ]

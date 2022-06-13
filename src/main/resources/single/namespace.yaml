@@ -1,8 +1,0 @@
-# 无需执行这个声明文件，本文件仅仅为了说明operator会自动生成的资源定义，仅做效果图
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: java-vastbase-operator
-labels:
-  name: java-vastbase-operator

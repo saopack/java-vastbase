@@ -18,7 +18,7 @@ source "/home/vastbase/.bashrc"
 
 if [ "${curr_node_name##*-}" = "0" ]
 then
-  if [ ! -d "${data_dir}/postgresql.conf" ]
+  if [ ! -f "${data_dir}/postgresql.conf" ]
   then
     rm -rf ${data_dir}/*
     su - vastbase -c "vb_initdb -U vastbase -E UTF8 --locale en_US.utf8 -D /home/vastbase/vbdata -w 1qaz@WSX --nodename vbnode >>/tmp/vbinstall.log 2>&1"
