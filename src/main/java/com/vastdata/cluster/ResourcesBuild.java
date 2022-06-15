@@ -234,6 +234,16 @@ public class ResourcesBuild {
         podSpec.setContainers(containers);
         podSpec.setVolumes(volumes);
 
+        // template.spec.containers.livenessProbe的配置
+        var livenessProbe = new Probe();
+        var httpGet = new HTTPGetAction();
+        httpGet.setPath("/cluster");
+        httpGet.setPath("8008");
+        livenessProbe.setHttpGet(httpGet);
+        livenessProbe.setInitialDelaySeconds(60);
+        livenessProbe.setPeriodSeconds(10);
+        livenessProbe.setTimeoutSeconds(5);
+
         // template配置
         var podTemplate = new PodTemplateSpec();
         podTemplate.setMetadata(podMeta);

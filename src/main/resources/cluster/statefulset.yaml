@@ -48,6 +48,13 @@ spec:
               mountPath: /home/vastbase/vbdata
             - name: conf
               mountPath: /home/vastbase/vbbase/has/conf
+          livenessProbe:
+            httpGet:
+              path: /cluster
+              port: 8008
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
   volumeClaimTemplates:
     - metadata:
         name: data

@@ -10,19 +10,22 @@ spec:
   containerName: vastbase
   containerPort: 5432
   volumeMounts:
-    - name: vastbase-persistent-storage
+    - name: data
       mountPath: /home/vastbase/vbdata
-    - name: vastbasecnf
-      mountPath: /home/vastbase/vbbase/has/has_conf.yml
-      subPath: home/vastbase/vbbase/has/has_conf.yml
-  pvcStorageSize: 2Gi
+    - name: conf
+      mountPath: /home/vastbase/vbbase/has/conf
+  pvcDataStorageSize: 2Gi
+  pvcConfStorageSize: 100Mi
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
   hostPath:
-    path: /home/vastbase/vbdata
-  pvName: vastbase-pv-volume
-  pvcName: vastbase-pv-claim
+    path: /data/vastbase/vbdata
+    confPath: /data/vastbase/hasconf
+  pvDataName: vastbase-data-pv
+  pvcDataName: data-vastbase
+  pvConfName: vastbase-conf-pv
+  pvcConfName: conf-vastbase
   headlessServiceName: vastbase
   vastbasePersistentStorageMountName: vastbase-persistent-storage
   vastbaseCnfMountName: vastbasecnf

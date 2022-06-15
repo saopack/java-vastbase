@@ -155,8 +155,5 @@ then
         chown -R ${user}:${user} ${db_data_dir}/arch
 fi
 
-
 #清空备库数据目录
 [[ -n $db_data_dir ]] && [[ -d $db_data_dir ]] && [[ "${curr_node_name##*-}" != "0" ]] && echo "remove slave data dir: $db_data_dir" && rm -rf $db_data_dir/*
-
-chown -R $user:$user $patroni_home
