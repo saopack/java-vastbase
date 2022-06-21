@@ -4,6 +4,7 @@ package com.vastdata.cluster;
 import com.vastdata.vo.CheckResult;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.sql.Time;
 
 public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     private final KubernetesClient client;
@@ -29,31 +31,39 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     @Override
     public UpdateControl<VastbaseCluster> reconcile(VastbaseCluster resource, Context context) {
         var spec = resource.getSpec();
-        // Step 1 新建PV
-        final var persistentVolume = resourcesBuild.buildPersistentVolume(resource);
-        // Step 2 新建PVC
-        final var persistentVolumeClaim = resourcesBuild.buildPersistentVolumeClaim(resource);
-        // Step 3 新建Pod-StatefulSet
+        //查询cr
+        var cluster = client.resources(CustomResource.class).withName(resource.getMetadata().getName());
+        
+        //TODO  cr处理逻辑如果CR不存在，则结束
+       /* if (cluster.get()==null){
+            return UpdateControl.noUpdate();
+        }
+
+        //如果CR已被删除，进行相应资源的清理操作
+        if (cluster.get().getMetadata().getDeletionTimestamp()!=null){
+            log.info("[{}:{}]删除集群",spec.getNamespace(),resource.getMetadata().getName());
+            return UpdateControl.noUpdate();
+        }*/
+        //如果校验结果无需操作，则结束
+        //TODO 
+
+        //根据CR Spec配置集群
+        
+        // Step 1 新建Pod-StatefulSet
         final var statefulSet = resourcesBuild.buildStatefulSet(resource);
-        // Step 4 新建Headless Service
+        // Step 2 新建Headless Service
         final var headlessService = resourcesBuild.buildHeadlessService(resource);
-        // Step 5 新建readService
+        // Step 3 新建readService
         final var readService = resourcesBuild.buildReadService(resource);
-        // Step 5 新建readwriteService
+        // Step 4 新建readwriteService
         final var writeService = resourcesBuild.buildWriteService(resource);
         log.info("spec: " + spec.toString());
-        var secretResource = client.resources(Secret.class).withName(spec.getSecretName());
-        var pvResource = client.resources(PersistentVolume.class).withName(spec.getPvName());
-        var pvcResource = client.resources(PersistentVolumeClaim.class).withName(spec.getPvcName());
         var statefulSetResource = client.resources(StatefulSet.class).withName(spec.getStatefulSetName());
         var headlessServiceResource = client.resources(Service.class).withName(spec.getHeadlessServiceName());
         var readServiceResource = client.resources(Service.class).withName(spec.getVastbaseReadServiceName());
         var writeServiceResource = client.resources(Service.class).withName(spec.getVastbaseWriteServiceName());
 
         // 判断这些资源是不是存在，可以用断言，代码好看一些
-        var secretExisting = secretResource.get();
-        var pvcExisting = pvcResource.get();
-        var pvExisting = pvResource.get();
         var statefulSetExisting = statefulSetResource.get();
         var headlessServiceExisting = headlessServiceResource.get();
         var readServiceExisting = readServiceResource.get();
@@ -61,24 +71,6 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
 
         // 资源不存在就创建
         CheckResult checkResult = new CheckResult();
-        // 检查pv
-        checkResult = resourcesCheck.checkPV(pvExisting, persistentVolume);
-        if (!checkResult.isMatch()) {
-            log.info("pv name of {} was created!", persistentVolume.getMetadata().getName());
-            pvResource.createOrReplace(persistentVolume);
-        }
-        // 检查pvc
-        checkResult = resourcesCheck.checkPVC(pvcExisting, persistentVolumeClaim);
-        if (!checkResult.isMatch()) {
-            log.info("pvc name of {} was created!", persistentVolumeClaim.getMetadata().getName());
-            pvcResource.createOrReplace(persistentVolumeClaim);
-        }
-        // 检查Secret
-        checkResult = resourcesCheck.checkSecret(secretExisting, persistentVolumeClaim);
-        if (!checkResult.isMatch()) {
-            log.info("pv name of {} was created!", persistentVolumeClaim.getMetadata().getName());
-            pvcResource.createOrReplace(persistentVolumeClaim);
-        }
         // 检查headless service
         checkResult = resourcesCheck.checkHeadlessService(headlessServiceExisting, headlessService);
         if (!checkResult.isMatch()) {
@@ -98,7 +90,7 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
             writeServiceResource.createOrReplace(writeService);
         }
         // 检查statefulset
-        checkResult = resourcesCheck.checkStatefulSet(statefulSetExisting, statefulSet);
+        checkResult = resourcesCheck.checkStatefulSet(statefulSetExisting, statefulSet,client,resource);
         if (!checkResult.isMatch()) {
             log.info("statefulSet name of {} was created!", statefulSet.getMetadata().getName());
             statefulSetResource.createOrReplace(statefulSet);

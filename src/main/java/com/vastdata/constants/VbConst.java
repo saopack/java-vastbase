@@ -1,0 +1,78 @@
+package com.vastdata.constants;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class VbConst {
+    public static final String GAUSS_CONTAINER_NAME = "og";
+    public static final String NOHUP_CMD = "nohup %s";
+    public static final String BASE_CMD = "%s %s -D /gaussdata/openGauss/db1 %s %s %s";
+    public static final String BASE_ASYNC_CMD = "%s %s -D /gaussdata/openGauss/db1 %s %s> /dev/null 2>&1 %s";
+    public static final String CHECK_RESULT_CMD = "; echo $?";
+    public static final String VB_CTL_CMD = "vb_ctl";
+    public static final String VB_CFG_CMD = "vb_guc";
+    public static final String VB_BASEBACKUP_CMD = "vb_basebackup";
+    public static final String CFG_PARAM_RELOAD = "reload";
+    public static final String CTL_PARAM_NOTIFY = "notify";
+    public static final String CTL_PARAM_BUILD = "build";
+    public static final String CTL_PARAM_QUERY = "query";
+    public static final String CTL_PARAM_START = "start";
+    public static final String CTL_PARAM_STOP = "stop";
+    public static final String CTL_PARAM_RESTART = "restart";
+    public static final String CTL_PARAM_SWITCHOVER = "switchover";
+    public static final String CTL_PARAM_FAILOVER = "failover";
+    public static final String CTL_M_PRIMARY = " -M primary ";
+    public static final String CTL_M_STANDBY = " -M standby ";
+    public static final String CTL_M_PENDING = " -M pending ";
+    public static final String CTL_MODE_FAST = " -m fast";
+    public static final String CTL_MODE_IMMEDIATE = " -m immediate ";
+    public static final String CHECK_STATE_CMD = "bash /gauss/files/K8SChkRepl.sh";
+    public static final String ENABLE_MAINTENANCE_CMD = "touch /gauss/files/maintenance";
+    public static final String DISABLE_MAINTENANCE_CMD = "rm -f /gauss/files/maintenance";
+    public static final String VB_DELETE_CMD = "rm -rf /gaussdata/openGauss/db1/*";
+    public static final String VB_RESTORE_CMD = "nohup bash /gauss/files/og-restore.sh -backupFile %s -dataDir /gaussdata/openGauss/db1 >> %s 2>&1 &";
+    public static final String VB_CLEAR_CONNINFO_CMD = "sed -i \"replconninfo/application_name/synchronous_standby_names/d\" /gaussdata/openGauss/db1/postgresql.conf";
+    public static final String VB_SQL_CMD = "vbql -d postgres -p %d -c \"%s\"";
+    public static final String VB_SQL_LSN_PRIMARY = "select pg_current_xlog_location();";
+    public static final String VB_SQL_LSN_STANDBY = "select pg_last_xlog_replay_location();";
+    public static final String VB_SQL_GET_PARAM = "show %s;";
+    public static final String VB_CONNECTION_STRING = "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable target_session_attrs=read-only";
+    public static final String VB_DEFAULT_NAME = "postgres";
+    public static final String VB_DEFAULT_USERNAME = "ogoperator";
+    public static final String VB_SQL_REPLCONNINDEX = "select name from pg_settings where name like 'replconninfo%' and setting not like '%localhost%' order by name asc limit 1;";
+    public static final String REPL_CONN_INFO_NAME = "replconninfo%d";
+    public static final String REPL_CONN_INFO_VALUE = "localhost=%s localport=%d localservice=%d remotehost=%s remoteport=%d remoteservice=%d";
+    public static final String APPLICATION_NAME_PARAM = "application_name";
+    public static final String MOST_AVAILABLE_SYNC_PARAM = "most_available_sync";
+    public static final String SYNC_COMMIT_PARAM = "synchronous_commit";
+    public static final String DB_CONFIG_PARAM = " -c \"%s=%s\"";
+    public static final String TRUST_INFO_PARAM = " -h \"host all all %s/32 trust\"";
+    public static final String REMOVE_TRUST_INFO_PARAM = " -h \"host all all %s/32 \"";
+    public static final String ENABLE_REMOTE_ACCESS_PARAM = " -h \"host all all 0.0.0.0/0 sha256\"";
+    public static final String ENABLE_BACKUPUSER_PARAM = " -h \"host replication backupuser 0.0.0.0/0 sha256\"";
+    public static final String SYNC_NAMES_PARAM_NAME = "synchronous_standby_names";
+    public static final String SYNC_NAMES_PARAM_VALUE = "FIRST %d(%s)";
+    public static final String PARAM_VALUE_OFF = "OFF";
+    public static final String PARAM_VALUE_ON = "ON";
+    public static final String SYNC_PARAM_VALUE_REMOTE = "remote_receive";
+    public static final String APP_NAME = "og_%s";
+    public static final String MAX_XLOG_PRUNE_PARAM = "max_size_for_xlog_prune";
+    public static final String MAX_XLOG_PRUNE_VALUE = "1048576";
+    public static final String VB_BASEBACKUP_PARAM = "--host=%s --port=%d >> %s 2>&1 &";
+    public static final String RESULT_SUCCESS = "Success to perform";
+    public static final String IP_LOCALHOST = "127.0.0.1";
+    public static final String BASEBACKUP_LOG_FILE = "/gauss/files/basebackup.log";
+    public static final String RESTORE_LOG_FILE = "/gauss/files/restore.log";
+    public static final int MAX_REPL_CONN_INDEX = 7;
+    public static final String BACKUP_PATH = "/gaussdata/backup";
+    public static final String STANDBY_CHANNEL_RE = "channel([\\s]*:\\s[\\d\\.:\\-\\>]*\\n)";
+    public static final String STANDBY_CHANNEL_VALUE = "-->([\\d\\.]+)";
+    public static final String STANDBY_SYNC_PERCENT_RE = "sync_percent([\\s]*:\\s[\\d]+%\\n)";
+    public static final String STANDBY_SYNC_PERCENT_VALUE = "([\\d]+)%";
+    public static final String STANDBY_SYNC_STATE_RE = "sync_state([\\s]*:\\s[\\w]+\\n)";
+    public static final String STANDBY_SYNC_STATE_VALUE = ":\\s([\\w]*)";
+    public static final String STANDBY_SYNC_PRIORITY_RE = "sync_priority([\\s]*:\\s[\\d]+\\n)";
+    public static final String STANDBY_SYNC_PRIORITY_VALUE = "([\\d]+)";
+}

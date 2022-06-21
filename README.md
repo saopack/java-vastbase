@@ -33,9 +33,11 @@ Quarkus可以用chocolatey来安装，版本不会低于2.7.5Final，也可以�
 ```bash
 make docker-build docker-push
 make install
-kubectl apply -f cluster/vastbase-secret.yaml
-kubectl apply -f cluster/vastbase-replica.yaml
-quarkus dev
+kubectl apply -f kubernetes.yml
+cd java-vastbase/src/main/resource/cluster/leak
+kubectl apply -f operator-service-account-rbac.yaml
+kubectl apply -f vastbase-secret.yaml
+kubectl apply -f vastbase-cluster.yaml
 ```
 
 quarkus支持实时模式，代码修改之后可以不用重启服务，稍等片刻就能重新加载完成。

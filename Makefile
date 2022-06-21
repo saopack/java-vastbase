@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= saopack/java-vastbase-operator:latest
+IMG ?= saopack/java-vastbase-operator:0.0.1
 
 all: docker-build
 

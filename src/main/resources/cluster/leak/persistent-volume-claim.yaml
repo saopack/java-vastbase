@@ -1,0 +1,25 @@
+# 无需执行这个声明文件，本文件仅仅为了说明operator会自动生成的资源定义，仅做效果图
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-vastbase-0
+spec:
+  resources:
+    requests:
+      storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-vastbase-1
+spec:
+  resources:
+    requests:
+      storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual

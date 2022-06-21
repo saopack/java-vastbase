@@ -16,6 +16,11 @@ public class VastbaseClusterSpec {
     private Integer replicas;
 
     /**
+     * 集群创建用户
+     */
+    private String serviceAccountName;
+
+    /**
      * 响应前置步骤中的Secret创建
      */
     private String secretName;

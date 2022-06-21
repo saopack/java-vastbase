@@ -206,44 +206,54 @@ public class ResourcesBuild {
         persistentVolumeClaimVolumeSource.setClaimName(vbSpec.getPvcName());
         var pvcVolume = new Volume();
         pvcVolume.setName(vbSpec.getVastbasePersistentStorageMountName());
-
         pvcVolume.setPersistentVolumeClaim(persistentVolumeClaimVolumeSource);
-
-        // cnf文件的挂载
-        var keyToPath = new KeyToPath();
-        keyToPath.setKey("has_conf.yml");
-        keyToPath.setPath(vbSpec.getVastbaseCnfMountSubPath());
-        var keyToPaths = new ArrayList<KeyToPath>();
-        keyToPaths.add(keyToPath);
-
-        var configMapVolumeSource = new ConfigMapVolumeSource();
-        //configMapVolumeSource.setName(vastbaseClusterSpec.getConfigMapName());
-        configMapVolumeSource.setItems(keyToPaths);
-
-        var vbcnfVolume = new Volume();
-        vbcnfVolume.setConfigMap(configMapVolumeSource);
-        vbcnfVolume.setName(vbSpec.getVolumeConfigName());
-
         var volumes = new ArrayList<Volume>();
-        //TODO 配置文件存在动态ip 再观察,影响扩缩节点 
-        //volumes.add(vbcnfVolume);
         volumes.add(pvcVolume);
-
+        // spec.volumeClaimTemplates信息 自动创建pvc
+        List<PersistentVolumeClaim> volumeClaimTemplates = new ArrayList<>();
+        PersistentVolumeClaim pvc = new PersistentVolumeClaim();
+        ObjectMeta metadata =new ObjectMeta();
+        metadata.setName(vbSpec.getVastbasePersistentStorageMountName());
+        PersistentVolumeClaimSpec pcvSpec =new PersistentVolumeClaimSpec();
+        List<String> accessModes = new ArrayList<>();
+        accessModes.add(AccessModeEnum.RWO.getAccessMode());
+        pcvSpec.setAccessModes(accessModes);
+        ResourceRequirements resources = new ResourceRequirements();
+        Map<String, Quantity> requests = new HashMap<>();
+        requests.put("storage",new Quantity("2Gi"));
+        resources.setRequests(requests);
+        pcvSpec.setResources(resources);
+        pvc.setMetadata(metadata);
+        pvc.setSpec(pcvSpec);
+        volumeClaimTemplates.add(pvc);
         // template.spec的配置
         var podSpec = new PodSpec();
         podSpec.setContainers(containers);
+        podSpec.setServiceAccountName(vbSpec.getServiceAccountName());
         podSpec.setVolumes(volumes);
 
         // template.spec.containers.livenessProbe的配置
         var livenessProbe = new Probe();
-        var httpGet = new HTTPGetAction();
-        httpGet.setPath("/cluster");
-        httpGet.setPath("8008");
-        livenessProbe.setHttpGet(httpGet);
+        ExecAction exec = new ExecAction();
+        List<String> command = new ArrayList<>();
+        command.add("vsql");
+        command.add("-c");
+        command.add("SELECT 1");
+        exec.setCommand(command);
+        livenessProbe.setExec(exec);
         livenessProbe.setInitialDelaySeconds(60);
         livenessProbe.setPeriodSeconds(10);
         livenessProbe.setTimeoutSeconds(5);
-
+        container.setLivenessProbe(livenessProbe);
+        
+        // template.spec.containers.readinessProbe的配置
+        var readinessProbe = new Probe();
+        readinessProbe.setExec(exec);
+        readinessProbe.setInitialDelaySeconds(60);
+        readinessProbe.setPeriodSeconds(10);
+        readinessProbe.setTimeoutSeconds(5);
+        container.setReadinessProbe(readinessProbe);
+        
         // template配置
         var podTemplate = new PodTemplateSpec();
         podTemplate.setMetadata(podMeta);
@@ -255,6 +265,7 @@ public class ResourcesBuild {
         spec.setServiceName(vbSpec.getHeadlessServiceName());
         spec.setSelector(labelSelector);
         spec.setTemplate(podTemplate);
+        spec.setVolumeClaimTemplates(volumeClaimTemplates);
 
         var statefulSet = new StatefulSet();
         statefulSet.setApiVersion(ApiVersionEnum.APPS_V1.getApiVersion());

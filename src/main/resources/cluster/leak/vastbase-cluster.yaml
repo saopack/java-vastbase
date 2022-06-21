@@ -2,38 +2,26 @@
 apiVersion: vastbase.vastdata.com/v1alpha1
 kind: VastbaseCluster
 metadata:
-  name: vb-replica
+  name: vb-cluster
 spec:
   replicas: 2
-  serviceAccountName: vastbase 
+  serviceAccountName: java-vastbase-operator
   secretName: vb-secret
-  image: saopack/vastbase_cluster:2.2.5
+  image: saopack/vastbase-cluster-leak:2.2.5
   containerName: vastbase
   containerPort: 5432
   volumeMounts:
     - name: data
       mountPath: /home/vastbase/vbdata
-    - name: conf
-      mountPath: /home/vastbase/vbbase/has/conf
-  pvcDataStorageSize: 2Gi
-  pvcConfStorageSize: 100Mi
+  pvcStorageSize: 2Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
   hostPath:
     path: /data/vastbase/vbdata
-    confPath: /data/vastbase/hasconf
-  pvDataName: vastbase-data-pv
-  pvcDataName: data-vastbase
-  pvConfName: vastbase-conf-pv
-  pvcConfName: conf-vastbase
   headlessServiceName: vastbase
-  vastbasePersistentStorageMountName: vastbase-persistent-storage
-  vastbaseCnfMountName: vastbasecnf
+  vastbasePersistentStorageMountName: data
   vastbasePersistentStorageMountPath: /home/vastbase/vbdata
-  vastbaseCnfMountPath: /home/vastbase/vbbase/has/has_conf.yml
-  vastbaseCnfMountSubPath: home/vastbase/vbbase/has/has_conf.yml
-  volumeConfigName: vastbasecnf
   statefulSetName: vastbase
   vastbaseReadServiceName: vastbase-read
   vastbaseWriteServiceName: vastbase-readwrite

@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: "vastbase"
       containers:
-        - name: vastbase
+        - name: vastbasevastbasesingles
           image: saopack/vastbase_cluster:2.2.5
           imagePullPolicy: Always
           env:
@@ -47,8 +47,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /home/vastbase/vbdata
-            - name: conf
-              mountPath: /home/vastbase/vbbase/has/conf
           livenessProbe:
             exec:
               command: ["vsql", "-c", "SELECT 1"]
@@ -69,10 +67,3 @@ spec:
         resources:
           requests:
             storage: 2Gi
-    - metadata:
-        name: conf
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 100Mi 
