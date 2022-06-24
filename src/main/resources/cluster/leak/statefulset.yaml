@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: "vastbase"
       containers:
-        - name: vastbasevastbasesingles
+        - name: vastbase
           image: saopack/vastbase_cluster:2.2.5
           imagePullPolicy: Always
           env:
@@ -50,13 +50,13 @@ spec:
           livenessProbe:
             exec:
               command: ["vsql", "-c", "SELECT 1"]
-            initialDelaySeconds: 60
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             exec:
               command: ["vsql", "-c", "SELECT 1"]
-            initialDelaySeconds: 60
+            initialDelaySeconds: 30
             periodSeconds: 2
             timeoutSeconds: 1
   volumeClaimTemplates:

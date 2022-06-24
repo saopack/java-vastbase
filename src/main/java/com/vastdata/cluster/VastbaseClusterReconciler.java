@@ -3,6 +3,7 @@ package com.vastdata.cluster;
 
 import com.vastdata.vo.CheckResult;
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.sql.Time;
 
 public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     private final KubernetesClient client;
@@ -22,6 +22,7 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     private ResourcesCheck resourcesCheck;
     @Inject
     private ResourcesBuild resourcesBuild;
+
     public VastbaseClusterReconciler(KubernetesClient client) {
         this.client = client;
     }
@@ -33,7 +34,7 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
         var spec = resource.getSpec();
         //查询cr
         var cluster = client.resources(CustomResource.class).withName(resource.getMetadata().getName());
-        
+
         //TODO  cr处理逻辑如果CR不存在，则结束
        /* if (cluster.get()==null){
             return UpdateControl.noUpdate();
@@ -48,7 +49,7 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
         //TODO 
 
         //根据CR Spec配置集群
-        
+
         // Step 1 新建Pod-StatefulSet
         final var statefulSet = resourcesBuild.buildStatefulSet(resource);
         // Step 2 新建Headless Service
@@ -90,14 +91,14 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
             writeServiceResource.createOrReplace(writeService);
         }
         // 检查statefulset
-        checkResult = resourcesCheck.checkStatefulSet(statefulSetExisting, statefulSet,client,resource);
+        checkResult = resourcesCheck.checkStatefulSet(statefulSetExisting, statefulSet, client, resource);
         if (!checkResult.isMatch()) {
-            log.info("statefulSet name of {} was created!", statefulSet.getMetadata().getName());
+            log.info("statefulSet name of {} was created! reason {}", statefulSet.getMetadata().getName(), checkResult.getReasons());
             statefulSetResource.createOrReplace(statefulSet);
         }
         return UpdateControl.noUpdate();
     }
 
-    
+
 }
 

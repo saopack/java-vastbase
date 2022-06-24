@@ -15,6 +15,7 @@ public class VbConst {
     public static final String VB_CFG_CMD = "vb_guc";
     public static final String VB_BASEBACKUP_CMD = "vb_basebackup";
     public static final String CFG_PARAM_RELOAD = "reload";
+    public static final String CFG_PARAM_RELOAD_WITH_PARAM = "-c";
     public static final String CTL_PARAM_NOTIFY = "notify";
     public static final String CTL_PARAM_BUILD = "build";
     public static final String CTL_PARAM_QUERY = "query";
@@ -47,7 +48,9 @@ public class VbConst {
     public static final String APPLICATION_NAME_PARAM = "application_name";
     public static final String MOST_AVAILABLE_SYNC_PARAM = "most_available_sync";
     public static final String SYNC_COMMIT_PARAM = "synchronous_commit";
-    public static final String DB_CONFIG_PARAM = " -c \"%s=%s\"";
+    public static final String DB_CONFIG_PARAM = "%s=%s";
+    public static final String DB_DATA_CMD = "-D";
+    public static final String DB_DATA = "/home/vastbase/vbdata";
     public static final String TRUST_INFO_PARAM = " -h \"host all all %s/32 trust\"";
     public static final String REMOVE_TRUST_INFO_PARAM = " -h \"host all all %s/32 \"";
     public static final String ENABLE_REMOTE_ACCESS_PARAM = " -h \"host all all 0.0.0.0/0 sha256\"";

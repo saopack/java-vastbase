@@ -2,6 +2,7 @@ package com.vastdata.cluster;
 
 import com.vastdata.constants.AccessModeEnum;
 import com.vastdata.constants.ApiVersionEnum;
+import com.vastdata.constants.ImagePullPolicEnum;
 import com.vastdata.constants.ResourceKindEnum;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -165,32 +166,33 @@ public class ResourcesBuild {
         //volumeMounts.add(cnfVolumeMount);
         // spec .container.env信息
         var envs = new ArrayList<EnvVar>();
-        envs.add(new EnvVar("REPLICAS",vbSpec.getReplicas().toString(),null));
-        envs.add(new EnvVar("PORT",vbSpec.getContainerPort().toString(),null));
-        envs.add(new EnvVar("SCOPE_NAME",vbSpec.getStatefulSetName(),null));
-        envs.add(new EnvVar("NAMESPACE",vbSpec.getNamespace(),null));
-        envs.add(new EnvVar("SERVICE_NAME",vbSpec.getHeadlessServiceName(),null));
+        envs.add(new EnvVar("REPLICAS", vbSpec.getReplicas().toString(), null));
+        envs.add(new EnvVar("PORT", vbSpec.getContainerPort().toString(), null));
+        envs.add(new EnvVar("SCOPE_NAME", vbSpec.getStatefulSetName(), null));
+        envs.add(new EnvVar("NAMESPACE", vbSpec.getNamespace(), null));
+        envs.add(new EnvVar("SERVICE_NAME", vbSpec.getHeadlessServiceName(), null));
 
         var envVarSourceIP = new EnvVarSource();
         var fieldSelector = new ObjectFieldSelector();
         fieldSelector.setFieldPath("status.podIP");
         envVarSourceIP.setFieldRef(fieldSelector);
-        envs.add(new EnvVar("HOST_IP",null,envVarSourceIP));
+        envs.add(new EnvVar("HOST_IP", null, envVarSourceIP));
 
         var envVarSourceVasePwd = new EnvVarSource();
         envVarSourceVasePwd.setFieldRef(null);
-        var secretKeySelector = new SecretKeySelector("vastbase_password",vbSpec.getSecretName(),null);
+        var secretKeySelector = new SecretKeySelector("vastbase_password", vbSpec.getSecretName(), null);
         envVarSourceVasePwd.setSecretKeyRef(secretKeySelector);
-        envs.add(new EnvVar("VASTBASE_PASSWORD",null,envVarSourceVasePwd));
+        envs.add(new EnvVar("VASTBASE_PASSWORD", null, envVarSourceVasePwd));
 
         var envVarSourceVbaPwd = new EnvVarSource();
-        var secretKeySelectorVbaPwd = new SecretKeySelector("vbadmin_password",vbSpec.getSecretName(),null);
+        var secretKeySelectorVbaPwd = new SecretKeySelector("vbadmin_password", vbSpec.getSecretName(), null);
         envVarSourceVbaPwd.setSecretKeyRef(secretKeySelectorVbaPwd);
-        envs.add(new EnvVar("VBADMIN_PASSWORD",null,envVarSourceVbaPwd));
+        envs.add(new EnvVar("VBADMIN_PASSWORD", null, envVarSourceVbaPwd));
         // spec.container信息
         var container = new Container();
         container.setName(vbSpec.getContainerName());
         container.setImage(vbSpec.getImage());
+        container.setImagePullPolicy(ImagePullPolicEnum.A.getPolic());
         container.setEnv(envs);
         //TODO 未确定具体数值 暂不做限制--yangjie
         //container.setResources(resourceRequirements);
@@ -212,15 +214,15 @@ public class ResourcesBuild {
         // spec.volumeClaimTemplates信息 自动创建pvc
         List<PersistentVolumeClaim> volumeClaimTemplates = new ArrayList<>();
         PersistentVolumeClaim pvc = new PersistentVolumeClaim();
-        ObjectMeta metadata =new ObjectMeta();
+        ObjectMeta metadata = new ObjectMeta();
         metadata.setName(vbSpec.getVastbasePersistentStorageMountName());
-        PersistentVolumeClaimSpec pcvSpec =new PersistentVolumeClaimSpec();
+        PersistentVolumeClaimSpec pcvSpec = new PersistentVolumeClaimSpec();
         List<String> accessModes = new ArrayList<>();
         accessModes.add(AccessModeEnum.RWO.getAccessMode());
         pcvSpec.setAccessModes(accessModes);
         ResourceRequirements resources = new ResourceRequirements();
         Map<String, Quantity> requests = new HashMap<>();
-        requests.put("storage",new Quantity("2Gi"));
+        requests.put("storage", new Quantity("2Gi"));
         resources.setRequests(requests);
         pcvSpec.setResources(resources);
         pvc.setMetadata(metadata);
@@ -241,19 +243,19 @@ public class ResourcesBuild {
         command.add("SELECT 1");
         exec.setCommand(command);
         livenessProbe.setExec(exec);
-        livenessProbe.setInitialDelaySeconds(60);
+        livenessProbe.setInitialDelaySeconds(30);
         livenessProbe.setPeriodSeconds(10);
         livenessProbe.setTimeoutSeconds(5);
         container.setLivenessProbe(livenessProbe);
-        
+
         // template.spec.containers.readinessProbe的配置
         var readinessProbe = new Probe();
         readinessProbe.setExec(exec);
-        readinessProbe.setInitialDelaySeconds(60);
+        readinessProbe.setInitialDelaySeconds(30);
         readinessProbe.setPeriodSeconds(10);
         readinessProbe.setTimeoutSeconds(5);
         container.setReadinessProbe(readinessProbe);
-        
+
         // template配置
         var podTemplate = new PodTemplateSpec();
         podTemplate.setMetadata(podMeta);

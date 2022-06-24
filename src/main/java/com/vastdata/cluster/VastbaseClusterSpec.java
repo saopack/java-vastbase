@@ -91,7 +91,7 @@ public class VastbaseClusterSpec {
      */
     private String pvcName;
 
-/*    *//**
+    /*    *//**
      * configMap的meta中的name属性
      *//*
     private String configMapName;
@@ -154,6 +154,6 @@ public class VastbaseClusterSpec {
     private Integer vastbaseServiceReadNodePort;
 
     private Integer vastbaseServiceWriteNodePort;
-    
+
     private String namespace;
 }
