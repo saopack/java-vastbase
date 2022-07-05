@@ -11,11 +11,13 @@ public class VbConst {
     public static final String BASE_CMD = "%s %s -D /gaussdata/openGauss/db1 %s %s %s";
     public static final String BASE_ASYNC_CMD = "%s %s -D /gaussdata/openGauss/db1 %s %s> /dev/null 2>&1 %s";
     public static final String CHECK_RESULT_CMD = "; echo $?";
+    public static final String VB_QL_CMD = "vsql";
     public static final String VB_CTL_CMD = "vb_ctl";
     public static final String VB_CFG_CMD = "vb_guc";
     public static final String VB_BASEBACKUP_CMD = "vb_basebackup";
     public static final String CFG_PARAM_RELOAD = "reload";
-    public static final String CFG_PARAM_RELOAD_WITH_PARAM = "-c";
+    public static final String CFG_PARAM_C = "-c";
+    public static final String CFG_PARAM_M = "-M";
     public static final String CTL_PARAM_NOTIFY = "notify";
     public static final String CTL_PARAM_BUILD = "build";
     public static final String CTL_PARAM_QUERY = "query";
@@ -24,14 +26,14 @@ public class VbConst {
     public static final String CTL_PARAM_RESTART = "restart";
     public static final String CTL_PARAM_SWITCHOVER = "switchover";
     public static final String CTL_PARAM_FAILOVER = "failover";
-    public static final String CTL_M_PRIMARY = " -M primary ";
-    public static final String CTL_M_STANDBY = " -M standby ";
+    public static final String CTL_M_PRIMARY = "primary ";
+    public static final String CTL_M_STANDBY = "standby ";
     public static final String CTL_M_PENDING = " -M pending ";
     public static final String CTL_MODE_FAST = " -m fast";
     public static final String CTL_MODE_IMMEDIATE = " -m immediate ";
     public static final String CHECK_STATE_CMD = "bash /gauss/files/K8SChkRepl.sh";
-    public static final String ENABLE_MAINTENANCE_CMD = "touch /gauss/files/maintenance";
-    public static final String DISABLE_MAINTENANCE_CMD = "rm -f /gauss/files/maintenance";
+    public static final String ENABLE_MAINTENANCE_CMD = "touch /home/vastbase/maintenance";
+    public static final String DISABLE_MAINTENANCE_CMD = "rm -f /home/vastbase/maintenance";
     public static final String VB_DELETE_CMD = "rm -rf /gaussdata/openGauss/db1/*";
     public static final String VB_RESTORE_CMD = "nohup bash /gauss/files/og-restore.sh -backupFile %s -dataDir /gaussdata/openGauss/db1 >> %s 2>&1 &";
     public static final String VB_CLEAR_CONNINFO_CMD = "sed -i \"replconninfo/application_name/synchronous_standby_names/d\" /gaussdata/openGauss/db1/postgresql.conf";
@@ -43,6 +45,7 @@ public class VbConst {
     public static final String VB_DEFAULT_NAME = "postgres";
     public static final String VB_DEFAULT_USERNAME = "ogoperator";
     public static final String VB_SQL_REPLCONNINDEX = "select name from pg_settings where name like 'replconninfo%' and setting not like '%localhost%' order by name asc limit 1;";
+    public static final String VB_SQL_CHECKPRIMARY = "select pg_is_in_recovery();";
     public static final String REPL_CONN_INFO_NAME = "replconninfo%d";
     public static final String REPL_CONN_INFO_VALUE = "localhost=%s localport=%d localservice=%d remotehost=%s remoteport=%d remoteservice=%d";
     public static final String APPLICATION_NAME_PARAM = "application_name";
@@ -78,4 +81,6 @@ public class VbConst {
     public static final String STANDBY_SYNC_STATE_VALUE = ":\\s([\\w]*)";
     public static final String STANDBY_SYNC_PRIORITY_RE = "sync_priority([\\s]*:\\s[\\d]+\\n)";
     public static final String STANDBY_SYNC_PRIORITY_VALUE = "([\\d]+)";
+    public static final String PG_DB_ROLE_PRIMARY = "primary";
+    public static final String PG_DB_ROLE_STANDBY = "standby";
 }

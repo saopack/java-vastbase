@@ -14,26 +14,26 @@ then
 fi
 
 if [ ! -f "${data_dir}/postgresql.conf" ]
- then
+  then
     rm -rf ${data_dir}/*
     vb_initdb -U vastbase -E UTF8 --locale en_US.utf8 -D /home/vastbase/vbdata -w 1qaz@WSX --nodename vbd >>/home/vastbase/logs/vbinstall.log 2>&1
     /bin/bash /home/vastbase/scripts/postgresql_config.sh
 fi
 
 if [ "${curr_node_name##*-}" = "0" ]
-then
-  if [ ! "$is_cluster" = "false" ] 
-  then          
-    vb_ctl start -M primary >> /home/vastbase/logs/vbstart.log 2>&1
-  else          
-    vb_ctl start >> /home/vastbase/logs/vbstart.log 2>&1
-  fi
-else
-  if [ ! -f "${data_dir}/postgresql.conf.bak" ]
-    then
-      vb_ctl build -b full >> /home/vastbase/logs/vbstart.log 2>&1   
-    else
-      vb_ctl start -M standby >> /home/vastbase/logs/vbstart.log 2>&1
-  fi    
+  then
+    if [ ! "$is_cluster" = "false" ] 
+    then          
+      vb_ctl start -M primary >> /home/vastbase/logs/vbstart.log 2>&1
+    else          
+      vb_ctl start >> /home/vastbase/logs/vbstart.log 2>&1
+    fi
+  else
+    if [ ! -f "${data_dir}/postgresql.conf.bak" ]
+      then
+        vb_ctl build -b full >> /home/vastbase/logs/vbstart.log 2>&1   
+      else
+        vb_ctl start -M standby >> /home/vastbase/logs/vbstart.log 2>&1
+    fi    
 fi
 tail -f /dev/null

@@ -13,9 +13,8 @@ curr_node_ip=$HOST_IP
 db_data_dir=/home/vastbase/vbdata
 lic_path=/home/vastbase/vbbase/lic/.license
 
-listen_port=55434
-heartbeat_port=55435
-service_port=55436
+listen_port=5434
+service_port=5435
 
 
 if [ -z $replicas ]
@@ -42,7 +41,7 @@ for i in $(seq 0 $((${replicas}-1)))
 do
   if [ "${curr_node_name##*-}" != "${i}" ]
     then
-      other_node_ip_list="${other_node_ip_list}${other_node_ip_list:+,}${scope_name}-${i}.${service_name}"
+      other_node_ip_list="${other_node_ip_list}${other_node_ip_list:+,}${scope_name}-${i}"
   fi
 done
 other_node_ip_list=(${other_node_ip_list//,/ })
@@ -51,7 +50,7 @@ for ip in ${other_node_ip_list[@]}
 do
   if [ ! "$ip" = "null" ]
       then 
-  echo "replconninfo$index = 'localhost=${curr_node_ip} localport=${listen_port} localheartbeatport=${heartbeat_port} localservice=${service_port} remotehost=$ip remoteport=${listen_port} remoteheartbeatport=${heartbeat_port} remoteservice=${service_port}'"  >> $postgresql_conf
+  echo "replconninfo$index = 'localhost=${curr_node_ip} localport=${listen_port} localservice=${service_port} remotehost=$ip remoteport=${listen_port} remoteservice=${service_port}'"  >> $postgresql_conf
   let index+=1
   fi
 done

@@ -13,12 +13,15 @@ spec:
   volumeMounts:
     - name: data
       mountPath: /home/vastbase/vbdata
+    - name: log
+      mountPath: /home/vastbase/vblog
   pvcStorageSize: 2Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
   hostPath:
-    path: /data/vastbase/vbdata
+    dataPath: /data/vastbase/vbdata
+    logPath: /data/vastbase/vblog
   headlessServiceName: vastbase
   vastbasePersistentStorageMountName: data
   vastbasePersistentStorageMountPath: /home/vastbase/vbdata

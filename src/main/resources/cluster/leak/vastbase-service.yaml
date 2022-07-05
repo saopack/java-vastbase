@@ -13,14 +13,6 @@ spec:
       protocol: TCP
       targetPort: 5433
       name: localport
-    - port: 2380
-      protocol: TCP
-      targetPort: 2380
-      name: etcd1-service
-    - port: 2379
-      protocol: TCP
-      targetPort: 2379
-      name: etcd1-local
   selector:
     app: vastbase
   clusterIP: None

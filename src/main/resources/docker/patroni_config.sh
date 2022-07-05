@@ -51,9 +51,9 @@ db_home=/home/vastbase/vbbase
 user=vastbase
 
 restapi_port=8008
-listen_port=55434
-heartbeat_port=55435
-service_port=55436
+listen_port=5434
+heartbeat_port=5435
+service_port=5436
 max_memory=$(free -m|grep "Mem"|awk '{print $2}')
 max_connections=500
 shared_buffers=256MB
@@ -80,10 +80,6 @@ if [ -z $curr_node_ip ]
 then
   curr_node_ip=$(hostname -I|awk '{print $1}')
 fi
-if [ -z $scope_name ]
-then
-  etcd_hosts=$curr_node_ip
-fi
 #set dir/file name
 [[ $patroni_home == */ ]] && patroni_home=${patroni_home%/*}
 
@@ -102,6 +98,20 @@ hba_conf=${db_data_dir}/pg_hba.conf
 
 #create config.yml
 cp -f /home/vastbase/scripts/patroni_conf_template.yml $patroni_conf_file
+
+for i in $(seq 0 $((${replicas}-1)))
+do
+  if [ "${curr_node_name##*-}" != "${i}" ]
+    then
+      other_node_ip_list="${other_node_ip_list}${other_node_ip_list:+,}${scope_name}-${i}.${service_name}"
+  fi
+done
+
+if [ $replicas -ge 3 ]
+  then
+    etcd_hosts="${scope_name}-0.${service_name},${scope_name}-1.${service_name},${scope_name}-2.${service_name}"
+fi
+    
 
 sed -i "s/{scope_name}/$scope_name/g" $patroni_conf_file
 sed -i "s/{curr_node_name}/$curr_node_name/g" $patroni_conf_file
@@ -123,13 +133,7 @@ sed -i "s#{adminPass}#$adminPass#g" $patroni_conf_file
 #patroni_callback.sh
 sed -i "s#{namespace}#$NAMESPACE#g" $patroni_callback_sh
 
-for i in $(seq 0 $((${replicas}-1)))
-do
-  if [ "${curr_node_name##*-}" != "${i}" ]
-    then
-      other_node_ip_list="${other_node_ip_list}${other_node_ip_list:+,}${scope_name}-${i}.${service_name}"
-  fi
-done
+
 other_node_ip_list=(${other_node_ip_list//,/ })
 index=1
 for ip in ${other_node_ip_list[@]}
