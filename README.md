@@ -1,4 +1,4 @@
-# java-vastbase
+# vastbase-operator
 
 这个工程的主要目的是创建vastbase G100的k8s集群,包括数据持久化,集群内部故障转移,节点扩缩容等功能特性
 
@@ -34,7 +34,7 @@ Quarkus可以用chocolatey来安装，版本不会低于2.7.5Final，也可以�
 make docker-build docker-push
 make install
 kubectl apply -f kubernetes.yml
-cd java-vastbase/src/main/resource/cluster/leak
+cd vastbase-operator/src/main/resource/cluster/leak
 kubectl apply -f operator-service-account-rbac.yaml
 kubectl apply -f vastbase-secret.yaml
 kubectl apply -f vastbase-cluster.yaml

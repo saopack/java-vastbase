@@ -5,7 +5,7 @@ metadata:
   name: vb-cluster
 spec:
   replicas: 2
-  serviceAccountName: java-vastbase-operator
+  serviceAccountName: vastbase-operator
   secretName: vb-secret
   image: saopack/vastbase-cluster-leak:2.2.5
   containerName: vastbase
