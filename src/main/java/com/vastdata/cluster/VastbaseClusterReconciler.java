@@ -27,20 +27,19 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     public VastbaseClusterReconciler(KubernetesClient client) {
         this.client = client;
     }
-    
+
     @Override
     public UpdateControl<VastbaseCluster> reconcile(VastbaseCluster resource, Context context) {
         var spec = resource.getSpec();
         //查询cr
-        CustomResourceDefinitionList crds = client.apiextensions().v1().customResourceDefinitions().list();
-        List<CustomResourceDefinition> crdsItems = crds.getItems();
+        VastbaseCluster resourceEx = client.resources(VastbaseCluster.class).inNamespace(resource.getMetadata().getNamespace()).withName("vb_cluster").get();
         //cr处理逻辑如果CR不存在，则结束
-        if (crdsItems.size()<1){
+        if (resourceEx == null) {
             return UpdateControl.noUpdate();
         }
         //如果CR已被删除，进行相应资源的清理操作
-        if (crdsItems.get(0).getMetadata().getDeletionTimestamp()!=null){
-            log.info("[{}:{}]删除集群",spec.getNamespace(),resource.getMetadata().getName());
+        if (resourceEx.getMetadata().getDeletionTimestamp() != null) {
+            log.info("[{}:{}]删除集群", spec.getNamespace(), resource.getMetadata().getName());
             return UpdateControl.noUpdate();
         }
         //校验cr是否合法，不合法则结束
@@ -48,8 +47,8 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
 
         //根据CR Spec配置集群
         try {
-            syncHandler.syncCluster(resource,client);
-        }catch (Exception e){
+            syncHandler.syncCluster(resource, client);
+        } catch (Exception e) {
             log.error("[{}:{}]配置集群发生错误，将于{}秒后重试", spec.getNamespace(), resource.getCRDName(), 30);
             e.printStackTrace();
             try {
@@ -57,9 +56,9 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
-            return UpdateControl.<VastbaseCluster>noUpdate().rescheduleAfter(60,TimeUnit.SECONDS);
+            return UpdateControl.<VastbaseCluster>noUpdate().rescheduleAfter(60, TimeUnit.SECONDS);
         }
-        return UpdateControl.<VastbaseCluster>noUpdate().rescheduleAfter(60,TimeUnit.SECONDS);
+        return UpdateControl.<VastbaseCluster>noUpdate().rescheduleAfter(60, TimeUnit.SECONDS);
     }
 }
 

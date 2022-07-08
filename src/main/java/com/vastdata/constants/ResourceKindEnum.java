@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum ResourceKindEnum {
     PV("PersistentVolume"),
     PVC("PersistentVolumeClaim"),
-    
+
     POD("Pod"),
 
     CONFIG_MAP("ConfigMap"),

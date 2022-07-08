@@ -15,10 +15,10 @@ public class EventService {
     }
 
     public void InstanceConfigFail(VastbaseCluster resource, String name, String s) {
-        
+
     }
 
     public void InstanceSetPrimary(VastbaseCluster resource, String name, String s) {
-        
+
     }
 }

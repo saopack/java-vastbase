@@ -18,6 +18,7 @@ public class SyncHandler {
     private ResourcesCheck resourcesCheck;
     @Inject
     private ResourcesBuild resourcesBuild;
+
     public void syncCluster(VastbaseCluster resource, KubernetesClient client) {
         log.info("[{}:{}]开始处理集群", resource.getSpec().getNamespace(), resource.getCRDName());
         var spec = resource.getSpec();
@@ -48,15 +49,15 @@ public class SyncHandler {
             writeServiceResource.createOrReplace(writeService);
         }
         // 维护vastbase G100集群
-        List<Pod>  readyPodList = resourcesCheck.ensureDBCluster(client, resource);
-        if (readyPodList.size()<1) {
-                return ;
+        List<Pod> readyPodList = resourcesCheck.ensureDBCluster(client, resource);
+        if (readyPodList.size() < 1) {
+            return;
         }
         // 集群选主, 以ready的节点作为集群
         checkResult = resourcesCheck.ensurePrimary(client, resource, readyPodList);
         if (!checkResult.isMatch()) {
             log.info("选主完成,主节点为:{}", checkResult.getReasons());
-        }        
-        return ;
+        }
+        return;
     }
 }

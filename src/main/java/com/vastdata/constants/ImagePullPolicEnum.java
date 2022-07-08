@@ -7,8 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ImagePullPolicEnum {
     A("Always"),
-    IP("IfNotPresent "),
-    N("Never "),
+    IP("IfNotPresent"),
+    N("Never"),
     ;
 
     private final String polic;

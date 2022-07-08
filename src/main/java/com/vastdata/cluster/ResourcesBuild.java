@@ -78,12 +78,12 @@ public class ResourcesBuild {
         return service;
     }
 
-    public Service buildHeadlessService(VastbaseCluster vastbaseReplica,String podName) {
+    public Service buildHeadlessService(VastbaseCluster vastbaseReplica, String podName) {
         var vastbaseClusterSpec = vastbaseReplica.getSpec();
 
         // metadata部分
         Map<String, String> labels = new HashMap<>();
-        labels.put("app",podName);
+        labels.put("app", podName);
         var objectMeta = new ObjectMeta();
         objectMeta.setName(podName);
         objectMeta.setLabels(labels);
@@ -94,13 +94,13 @@ public class ResourcesBuild {
         servicePort.setPort(vastbaseClusterSpec.getContainerPort());
         var innerPort = new ServicePort();
         innerPort.setName("innerport");
-        innerPort.setPort(vastbaseClusterSpec.getContainerPort()+1);
+        innerPort.setPort(vastbaseClusterSpec.getContainerPort() + 1);
         var localPort = new ServicePort();
         localPort.setName("localport");
-        localPort.setPort(vastbaseClusterSpec.getContainerPort()+2);
+        localPort.setPort(vastbaseClusterSpec.getContainerPort() + 2);
         var localService = new ServicePort();
         localService.setName("localservice");
-        localService.setPort(vastbaseClusterSpec.getContainerPort()+3);
+        localService.setPort(vastbaseClusterSpec.getContainerPort() + 3);
         var servicePorts = new ArrayList<ServicePort>();
         servicePorts.add(servicePort);
         servicePorts.add(innerPort);
@@ -310,7 +310,7 @@ public class ResourcesBuild {
         return configMap;
     }
 
-    public PersistentVolumeClaim buildPersistentVolumeClaim(VastbaseCluster vastbaseReplica,String podName,String volType) {
+    public PersistentVolumeClaim buildPersistentVolumeClaim(VastbaseCluster vastbaseReplica, String podName, String volType) {
         var vastbaseClusterSpec = vastbaseReplica.getSpec();
 
         // resource定义部分
@@ -328,7 +328,7 @@ public class ResourcesBuild {
         // spec部分
         LabelSelector labelSelector = new LabelSelector();
         Map<String, String> matchLabels = new HashMap<>();
-        matchLabels.put("pv",podName+"-"+volType);
+        matchLabels.put("pv", podName + "-" + volType);
         labelSelector.setMatchLabels(matchLabels);
         var spec = new PersistentVolumeClaimSpec();
         spec.setStorageClassName(vastbaseClusterSpec.getStorageClassName());
@@ -338,10 +338,10 @@ public class ResourcesBuild {
 
         // meta部分
         Map<String, String> labels = new HashMap<>();
-        labels.put("app.kubernetes.io/app","vastbase");
-        labels.put("pvc",podName+"-"+volType);
+        labels.put("app.kubernetes.io/app", "vastbase");
+        labels.put("pvc", podName + "-" + volType);
         var objectMeta = new ObjectMeta();
-        objectMeta.setName(podName+"-"+volType+"-pvc");
+        objectMeta.setName(podName + "-" + volType + "-pvc");
         objectMeta.setNamespace(vastbaseClusterSpec.getNamespace());
         objectMeta.setLabels(labels);
 
@@ -354,7 +354,7 @@ public class ResourcesBuild {
         return persistentVolumeClaim;
     }
 
-    public PersistentVolume buildPersistentVolume(VastbaseCluster replica,String podName,String volType) {
+    public PersistentVolume buildPersistentVolume(VastbaseCluster replica, String podName, String volType) {
         var vastbaseCluster = replica.getSpec();
 
         // 容量信息
@@ -369,7 +369,7 @@ public class ResourcesBuild {
 
         // 路径信息
         var hostPathVolumeSource = new HostPathVolumeSource();
-        hostPathVolumeSource.setPath(vastbaseCluster.getHostPath().get("dataPath")+"/"+podName);
+        hostPathVolumeSource.setPath(vastbaseCluster.getHostPath().get("dataPath") + "/" + podName);
 
         // PV的spec信息
         var spec = new PersistentVolumeSpec();
@@ -377,12 +377,12 @@ public class ResourcesBuild {
         spec.setHostPath(hostPathVolumeSource);
         spec.setAccessModes(accessModes);
         spec.setCapacity(capacity);
-        
+
         Map<String, String> labels = new HashMap<>();
-        labels.put("app.kubernetes.io/app","vastbase");
-        labels.put("pv",podName+"-"+volType);
+        labels.put("app.kubernetes.io/app", "vastbase");
+        labels.put("pv", podName + "-" + volType);
         var objectMeta = new ObjectMeta();
-        objectMeta.setName(podName+"-"+volType+"-pv");
+        objectMeta.setName(podName + "-" + volType + "-pv");
         objectMeta.setLabels(labels);
         // PV声明头
         var persistentVolume = new PersistentVolume();
@@ -427,7 +427,7 @@ public class ResourcesBuild {
 
         // 数据目录的挂载
         var storageVolumeMount = new VolumeMount();
-        storageVolumeMount.setName(podName+"-data-pvc");
+        storageVolumeMount.setName(podName + "-data-pvc");
         storageVolumeMount.setMountPath(vbSpec.getVastbasePersistentStorageMountPath());
 
 
@@ -482,19 +482,21 @@ public class ResourcesBuild {
 
         var containers = new ArrayList<Container>();
         containers.add(container);
-        
+
         var pvcVolume = new Volume();
         var persistentVolumeClaimVolumeSource = new PersistentVolumeClaimVolumeSource();
-        persistentVolumeClaimVolumeSource.setClaimName(podName+"-data-pvc");
-        pvcVolume.setName(podName+"-data-pvc");
+        persistentVolumeClaimVolumeSource.setClaimName(podName + "-data-pvc");
+        pvcVolume.setName(podName + "-data-pvc");
         pvcVolume.setPersistentVolumeClaim(persistentVolumeClaimVolumeSource);
         var volumes = new ArrayList<Volume>();
         volumes.add(pvcVolume);
-        
+
         // template.spec的配置
         var podSpec = new PodSpec();
         podSpec.setContainers(containers);
-        podSpec.setInitContainers(new ArrayList<>(){{add(initContainer);}});
+        podSpec.setInitContainers(new ArrayList<>() {{
+            add(initContainer);
+        }});
         podSpec.setVolumes(volumes);
         podSpec.setServiceAccountName(vbSpec.getServiceAccountName());
         // spec.containers.livenessProbe的配置
@@ -518,7 +520,7 @@ public class ResourcesBuild {
         readinessProbe.setPeriodSeconds(10);
         readinessProbe.setTimeoutSeconds(5);
         container.setReadinessProbe(readinessProbe);
-        
+
         var pod = new Pod();
         pod.setApiVersion(ApiVersionEnum.V1.getApiVersion());
         pod.setKind(ResourceKindEnum.POD.getKind());

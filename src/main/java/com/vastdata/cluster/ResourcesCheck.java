@@ -184,6 +184,17 @@ public class ResourcesCheck {
         return resource.getSpec().getMaintain();
     }
 
+    /*
+根据vb spec维护vb数据库集群
+方法参数：
+	resource：当前CR
+方法逻辑：
+	1 如果集群标记为维护状态，不做操作
+	2 根据cr 副本数量，确保pod与pv pvc service数量
+	3 如果当前Spec相对于前一个版本有资源升级，则对Pod进行滚动升级
+	4 如果当前Spec相对于前一个版本有数据库配置变更，则修改所有实例的配置参数
+完成后，标记CR状态为ready
+*/
     public List<Pod> ensureDBCluster(KubernetesClient client, VastbaseCluster resource) {
         String clusterName = resource.getMetadata().getName();
         String namespace = resource.getMetadata().getNamespace();
@@ -203,22 +214,104 @@ public class ResourcesCheck {
         }
         log.info("[{}:{}]开始维护数据库集群", namespace, clusterName);
         if (!ensureSpecCluster(client, resource)) {
-            
+
         }
         //如果等待所有Pod状态变为running超时
         //	集群pod存在不可用，则抛出错误
-        List<Pod> readyPodList = resourcesService.waitPodsRunning(client,resource);
-        if(readyPodList.size()<1){
+        List<Pod> readyPodList = resourcesService.waitPodsRunning(client, resource);
+        if (readyPodList.size() < 1) {
             log.info("没有可用的Pod，进程终止");
             return readyPodList;
         }
         if (cleanupCluster(client, resource)) {
 
         }
+        if (upgradeRequired(client, resource)) {
+            upgradeCluster(client, resource, readyPodList);
+        }
         if (IsDBConfigChange(client, resource)) {
             updateDBConfig(client, resource);
         }
         return readyPodList;
+    }
+
+    /*
+集群升级
+方法参数：
+	cluster：当前CR
+方法逻辑：
+	遍历集群Pod
+		如果当前Pod的资源（镜像、CPU、内存、带宽）与CR.Spec不一致
+			如果是Standby，则升级该实例Pod
+			如果是Primary，则记录IP
+	升级Primary
+		重新查询集群Pod数组
+		如果有Standby实例，则通过比较LSN选择新的Primary，做主从切换，然后升级原主Pod并启动为Standby
+		如果没有，则直接升级Primary所在Pod并启动为Primary
+*/
+    private void upgradeCluster(KubernetesClient client, VastbaseCluster resource, List<Pod> readyPodList) {
+        String nameSpace = resource.getSpec().getNamespace();
+        String crName = resource.getMetadata().getName();
+        Pod primaryPod = new Pod();
+        log.info("[{}:{}]开始升级", nameSpace, resource.getSpec().getContainerName());
+        for (Pod pod : readyPodList) {
+            String podName = pod.getMetadata().getName();
+            //升级前删除lable
+            resourcesService.delRoleLabelToPod(client,pod);
+            boolean run = dbService.checkDBState(client, resource, pod);
+            if (!run) {
+                continue;
+            } else {
+                //分主备
+                if (!dbService.checkDBRepl(client, nameSpace, podName)) {
+                    if (upgradePod(client, resource, pod)) {
+                        log.info("[{}:{}]Pod {}升级失败", nameSpace, crName, podName);
+                    }
+                } else {
+                    primaryPod = pod;
+                }
+            }
+        }
+        //TODO 主的需要在备机中查询lsn最大的一个做主从切换 实现滚动升级
+        List<Pod> podRebuildList = client.pods().inNamespace(nameSpace).list().getItems();
+        podRebuildList.remove(primaryPod);
+        Pod selectedPod = dbService.findPodWithLargestLSN(client, podRebuildList, resource);
+        //主从切换
+        dbService.switchPrimary(client,resource,selectedPod,primaryPod);
+        if (upgradePod(client, resource, primaryPod)) {
+            log.info("[{}:{}]Pod {}升级失败", nameSpace, crName, primaryPod.getMetadata().getName());
+        }
+    }
+    
+    private boolean upgradePod(KubernetesClient client, VastbaseCluster resource, Pod pod) {
+        String podName = pod.getMetadata().getName();
+        String nameSpace = resource.getSpec().getNamespace();
+        boolean deleted = resourcesService.deletePod(client, nameSpace, podName);
+        if (!deleted) {
+            return false;
+        }
+        resourcesService.ensurePodResource(client, resource, podName);
+        boolean running = resourcesService.waitPodRunning(client, resource, podName);
+        if (!running) {
+            return false;
+        }
+        //升级完成后添加lable,默认添加standby
+        resourcesService.addRoleLabelToPod(client,pod,false);
+        return true;
+    }
+
+    private boolean upgradeRequired(KubernetesClient client, VastbaseCluster resource) {
+        VastbaseCluster resourceEx = client.resources(VastbaseCluster.class).inNamespace(resource.getMetadata().getNamespace()).withName("vb_cluster").get();
+        if (!resource.getSpec().getImage().equals(resourceEx.getSpec().getImage())) {
+            return true;
+        }
+        if (!resource.getSpec().getResourceLimits().get("cpu").equals(resourceEx.getSpec().getResourceLimits().get("cpu"))) {
+            return true;
+        }
+        if (!resource.getSpec().getResourceLimits().get("memory").equals(resourceEx.getSpec().getResourceLimits().get("memory"))) {
+            return true;
+        }
+        return false;
     }
 
     private void updateDBConfig(KubernetesClient client, VastbaseCluster resource) {
@@ -315,7 +408,7 @@ public class ResourcesCheck {
         Pod podPrimary = new Pod();
         List<Pod> primaryPodList = new ArrayList<>();
         for (Pod pod : podList) {
-            if (dbService.checkDBState(client, vbspec.getNamespace(), pod.getMetadata().getName())) {
+            if (dbService.checkDBRepl(client, vbspec.getNamespace(), pod.getMetadata().getName())) {
                 primaryPodList.add(pod);
             }
         }
@@ -325,7 +418,7 @@ public class ResourcesCheck {
         //无主：主集群没有Primary
 
         if (primaryPodList.size() > 1) {
-            processMultiplePrimary(client, podList, primaryPodList);
+            processMultiplePrimary(client, primaryPodList, resource);
         } else if (primaryPodList.size() == 1) {
 
         } else if (primaryPodList.size() < 1) {
@@ -342,14 +435,14 @@ public class ResourcesCheck {
     }
 
     private void configDBInstance(KubernetesClient client, VastbaseCluster resource, List<Pod> podList, Pod podPrimary) {
-        boolean flag = dbService.ConfigDB(client,resource,podList,podPrimary);
-        if(!flag){
-            eventService.InstanceConfigFail(resource,podPrimary.getMetadata().getName(),"");
-        } else { 
-            eventService.InstanceSetPrimary(resource, podPrimary.getMetadata().getName(),"");
+        boolean flag = dbService.ConfigDB(client, resource, podList, podPrimary);
+        if (!flag) {
+            eventService.InstanceConfigFail(resource, podPrimary.getMetadata().getName(), "");
+        } else {
+            eventService.InstanceSetPrimary(resource, podPrimary.getMetadata().getName(), "");
         }
     }
-    
+
     /*
     处理无主问题
     方法参数：
@@ -366,14 +459,14 @@ public class ResourcesCheck {
         log.info("[{}:{}]当前数据库实例中没有主节点", vbspec.getNamespace(), resource.getMetadata().getName());
         Pod selectedPod = new Pod();
         if (podList.size() > 0) {
-            selectedPod = dbService.FindPodWithLargestLSN(client, podList, resource);
+            selectedPod = dbService.findPodWithLargestLSN(client, podList, resource);
             if (selectedPod == null) {
                 selectedPod = podList.get(0);
             }
         }
         return selectedPod;
     }
-    
+
     /*
     处理多主问题
     方法参数：
@@ -389,15 +482,24 @@ public class ResourcesCheck {
     方法逻辑：
         将所有Primary重启为Standby
     */
-    private void processMultiplePrimary(KubernetesClient client, List<Pod> podList, List<Pod> primaryPodList) {
-
+    private Pod processMultiplePrimary(KubernetesClient client, List<Pod> podList, VastbaseCluster resource) {
+        VastbaseClusterSpec vbspec = resource.getSpec();
+        log.info("[{}:{}]当前数据库实例中有多个主节点", vbspec.getNamespace(), resource.getMetadata().getName());
+        Pod selectedPod = new Pod();
+        if (podList.size() > 0) {
+            selectedPod = dbService.findPodWithLargestLSN(client, podList, resource);
+            if (selectedPod == null) {
+                selectedPod = podList.get(0);
+            }
+        }
+        return selectedPod;
     }
 
     private boolean updatePodLabels(KubernetesClient client, VastbaseCluster resource, List<Pod> podList) {
         VastbaseClusterSpec vbspec = resource.getSpec();
         log.info("[{}:{}]开始维护pod lable", vbspec.getNamespace(), resource.getMetadata().getName());
         for (Pod pod : podList) {
-            if (dbService.checkDBState(client, vbspec.getNamespace(), pod.getMetadata().getName())) {
+            if (dbService.checkDBRepl(client, vbspec.getNamespace(), pod.getMetadata().getName())) {
                 addRoleLabelToPod(client, pod, true);
             } else {
                 addRoleLabelToPod(client, pod, false);

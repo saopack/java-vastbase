@@ -17,6 +17,7 @@ public class VbConst {
     public static final String VB_BASEBACKUP_CMD = "vb_basebackup";
     public static final String CFG_PARAM_RELOAD = "reload";
     public static final String CFG_PARAM_C = "-c";
+    public static final String CFG_PARAM_B = "-b";
     public static final String CFG_PARAM_M = "-M";
     public static final String CTL_PARAM_NOTIFY = "notify";
     public static final String CTL_PARAM_BUILD = "build";
@@ -26,6 +27,7 @@ public class VbConst {
     public static final String CTL_PARAM_RESTART = "restart";
     public static final String CTL_PARAM_SWITCHOVER = "switchover";
     public static final String CTL_PARAM_FAILOVER = "failover";
+    public static final String CTL_PARAM_FULL = "full";
     public static final String CTL_M_PRIMARY = "primary ";
     public static final String CTL_M_STANDBY = "standby ";
     public static final String CTL_M_PENDING = " -M pending ";

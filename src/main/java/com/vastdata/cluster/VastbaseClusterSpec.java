@@ -156,6 +156,6 @@ public class VastbaseClusterSpec {
     private Integer vastbaseServiceWriteNodePort;
 
     private String namespace;
-    
+
     private String maintain;
 }

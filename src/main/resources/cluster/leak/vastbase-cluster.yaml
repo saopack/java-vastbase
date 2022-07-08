@@ -9,12 +9,15 @@ spec:
   secretName: vb-secret
   image: saopack/vastbase-cluster-leak:2.2.5
   containerName: vastbase
+  resourceLimits:
+    memory: "1Gi"
+    cpu: "500m"
   containerPort: 5432
   volumeMounts:
     - name: data
       mountPath: /home/vastbase/vbdata
     - name: log
-      mountPath: /home/vastbase/vblog
+      mountPath: /home/vastbase/logs
   pvcStorageSize: 2Gi
   accessModes:
     - ReadWriteOnce
@@ -23,9 +26,6 @@ spec:
     dataPath: /data/vastbase/vbdata
     logPath: /data/vastbase/vblog
   headlessServiceName: vastbase
-  vastbasePersistentStorageMountName: data
-  vastbasePersistentStorageMountPath: /home/vastbase/vbdata
-  statefulSetName: vastbase
   vastbaseReadServiceName: vastbase-read
   vastbaseWriteServiceName: vastbase-readwrite
   vastbaseServiceReadNodePort: 30088
