@@ -5,14 +5,13 @@ metadata:
   name: vb-cluster
 spec:
   replicas: 2
-  serviceAccountName: vastbase-operator
   secretName: vb-secret
   image: saopack/vastbase-cluster-leak:2.2.5
   containerName: vastbase
+  containerPort: 5432
   resourceLimits:
     memory: "1Gi"
     cpu: "500m"
-  containerPort: 5432
   volumeMounts:
     - name: data
       mountPath: /home/vastbase/vbdata
@@ -25,9 +24,6 @@ spec:
   hostPath:
     dataPath: /data/vastbase/vbdata
     logPath: /data/vastbase/vblog
-  headlessServiceName: vastbase
-  vastbaseReadServiceName: vastbase-read
-  vastbaseWriteServiceName: vastbase-readwrite
   vastbaseServiceReadNodePort: 30088
   vastbaseServiceWriteNodePort: 30090
   namespace: default

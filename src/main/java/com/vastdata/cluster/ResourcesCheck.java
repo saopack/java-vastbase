@@ -301,7 +301,7 @@ public class ResourcesCheck {
     }
 
     private boolean upgradeRequired(KubernetesClient client, VastbaseCluster resource) {
-        VastbaseCluster resourceEx = client.resources(VastbaseCluster.class).inNamespace(resource.getMetadata().getNamespace()).withName("vb_cluster").get();
+        VastbaseCluster resourceEx = client.resources(VastbaseCluster.class).inNamespace(resource.getMetadata().getNamespace()).withName(resource.getMetadata().getName()).get();
         if (!resource.getSpec().getImage().equals(resourceEx.getSpec().getImage())) {
             return true;
         }

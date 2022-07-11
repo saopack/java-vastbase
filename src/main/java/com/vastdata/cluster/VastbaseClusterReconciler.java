@@ -32,7 +32,7 @@ public class VastbaseClusterReconciler implements Reconciler<VastbaseCluster> {
     public UpdateControl<VastbaseCluster> reconcile(VastbaseCluster resource, Context context) {
         var spec = resource.getSpec();
         //查询cr
-        VastbaseCluster resourceEx = client.resources(VastbaseCluster.class).inNamespace(resource.getMetadata().getNamespace()).withName("vb_cluster").get();
+        VastbaseCluster resourceEx = client.resources(VastbaseCluster.class).inNamespace(resource.getMetadata().getNamespace()).withName(resource.getMetadata().getName()).get();
         //cr处理逻辑如果CR不存在，则结束
         if (resourceEx == null) {
             return UpdateControl.noUpdate();

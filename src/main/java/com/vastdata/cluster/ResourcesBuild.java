@@ -21,7 +21,7 @@ public class ResourcesBuild {
         var labels = new HashMap<String, String>();
         labels.put("origin", vastbaseClusterSpec.getContainerName());
         ObjectMeta objectMeta = new ObjectMeta();
-        objectMeta.setName(vastbaseClusterSpec.getVastbaseReadServiceName());
+        objectMeta.setName("vastbase-read");
         objectMeta.setLabels(labels);
 
         var servicePort = new ServicePort();
@@ -53,7 +53,7 @@ public class ResourcesBuild {
         labels.put("origin", vastbaseClusterSpec.getContainerName());
         labels.put("role", "master");
         ObjectMeta objectMeta = new ObjectMeta();
-        objectMeta.setName(vastbaseClusterSpec.getVastbaseWriteServiceName());
+        objectMeta.setName("vastbase-readwrite");
         objectMeta.setLabels(labels);
 
         var servicePort = new ServicePort();
@@ -243,7 +243,7 @@ public class ResourcesBuild {
         // template.spec的配置
         var podSpec = new PodSpec();
         podSpec.setContainers(containers);
-        podSpec.setServiceAccountName(vbSpec.getServiceAccountName());
+        podSpec.setServiceAccountName("vastbase-operator");
         podSpec.setVolumes(volumes);
 
         // template.spec.containers.livenessProbe的配置
@@ -428,7 +428,7 @@ public class ResourcesBuild {
         // 数据目录的挂载
         var storageVolumeMount = new VolumeMount();
         storageVolumeMount.setName(podName + "-data-pvc");
-        storageVolumeMount.setMountPath(vbSpec.getVastbasePersistentStorageMountPath());
+        storageVolumeMount.setMountPath(vbSpec.getVolumeMounts().get(0).getMountPath());
 
 
         volumeMounts.add(storageVolumeMount);
@@ -498,7 +498,7 @@ public class ResourcesBuild {
             add(initContainer);
         }});
         podSpec.setVolumes(volumes);
-        podSpec.setServiceAccountName(vbSpec.getServiceAccountName());
+        podSpec.setServiceAccountName("vastbase-operator");
         // spec.containers.livenessProbe的配置
         var livenessProbe = new Probe();
         ExecAction exec = new ExecAction();
