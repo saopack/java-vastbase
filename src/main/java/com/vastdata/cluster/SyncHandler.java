@@ -58,6 +58,5 @@ public class SyncHandler {
         if (!checkResult.isMatch()) {
             log.info("选主完成,主节点为:{}", checkResult.getReasons());
         }
-        return;
     }
 }

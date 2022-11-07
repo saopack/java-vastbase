@@ -5,6 +5,7 @@ metadata:
   name: vb-cluster
 spec:
   replicas: 2
+  serviceAccountName: vastbase-operator
   secretName: vb-secret
   image: saopack/vastbase-cluster-leak:2.2.5
   containerName: vastbase
@@ -24,6 +25,9 @@ spec:
   hostPath:
     dataPath: /data/vastbase/vbdata
     logPath: /data/vastbase/vblog
+  headlessServiceName: vastbase
+  vastbaseReadServiceName: vastbase-read
+  vastbaseWriteServiceName: vastbase-readwrite
   vastbaseServiceReadNodePort: 30088
   vastbaseServiceWriteNodePort: 30090
   namespace: default

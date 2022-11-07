@@ -223,6 +223,10 @@ public class ResourcesCheck {
             log.info("没有可用的Pod，进程终止");
             return readyPodList;
         }
+
+        //不固定ip流复制连接维护
+        ensureReplication(client, resource);
+        
         if (cleanupCluster(client, resource)) {
 
         }
@@ -316,11 +320,40 @@ public class ResourcesCheck {
 
     private void updateDBConfig(KubernetesClient client, VastbaseCluster resource) {
         String clusterName = resource.getMetadata().getName();
-        String namespace = resource.getMetadata().getNamespace();
+        String namespace = resource.getSpec().getNamespace();
         log.info("[{}:{}]开始更新数据配置", namespace, clusterName);
     }
 
+    private void ensureReplication(KubernetesClient client, VastbaseCluster resource) {
+        String clusterName = resource.getMetadata().getName();
+        String namespace = resource.getMetadata().getNamespace();
+        var spec = resource.getSpec();
+        int port = resource.getSpec().getContainerPort();
+        List<Pod> podList = client.pods().inNamespace(spec.getNamespace()).withLabel("origin", "vastbase").list().getItems();
+        for (Pod pod : podList) {
+            String podName = pod.getMetadata().getName();
+            if (!podName.startsWith(resource.getSpec().getContainerName())) {
+                continue;
+            }
+            int podOrder = Integer.valueOf(podName.substring(podName.length() - 1));
+            int order = 0;
+            String ip = pod.getStatus().getPodIP();
+            for (int i = 0; i < podList.size(); i++) {
+                if (podOrder != i) {
+                    String otherPodIp = podList.get(i).getStatus().getPodIP();
+                    order++;
+                    String configName = String.format(VbConst.REPL_CONN_INFO_NAME, order);
+                    String configValue = String.format(VbConst.REPL_CONN_INFO_VALUE, ip, port + 2, port + 3, otherPodIp, port + 2, port + 3);
+                    String execDbCmd = dbService.generateDBConfigPropParam(configName, configValue, true);
+                    dbService.reload(client, namespace, pod.getMetadata().getName(), execDbCmd);
+                }
+            }
+        }
+        log.info("[{}:{}]更新数据库流复制信息!", namespace, clusterName);
+    }
+    
     private boolean IsDBConfigChange(KubernetesClient client, VastbaseCluster resource) {
+        
         return false;
     }
 
